@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🎉 تحديات وطنية 🎉</title>
+<style>
+  :root{
+    --green:#0a7a33;
+    --green-dark:#064e22;
+    --green-soft:#e9f7ec;
+    --glass-bg:rgba(255,255,255,0.6);
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:"Tahoma", Arial, sans-serif;
+    margin:0; direction:rtl; text-align:center;
+    background: radial-gradient(60% 60% at 50% 30%, #f2fff3 0%, #e6f9e6 40%, #f0fff0 100%);
+    color:var(--green-dark);
+  }
+  h1{
+    margin:20px 10px;
+    color:var(--green-dark);
+    font-size:42px;
+    letter-spacing:0.5px;
+    text-shadow:0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .glass{
+    width:min(900px,92%);
+    margin:18px auto;
+    background:var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border:1px solid rgba(10,122,51,0.15);
+    border-radius:14px;
+    padding:18px 16px;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+  }
+
+  button{
+    padding:12px 20px; margin:10px 8px;
+    border-radius:10px; border:2px solid var(--green);
+    background:rgba(255,255,255,0.85);
+    color:var(--green-dark); font-weight:700; font-size:18px;
+    cursor:pointer; transition:transform .08s ease, box-shadow .2s ease, background .2s;
+  }
+  button:hover{ transform:translateY(-1px); background:rgba(10,122,51,0.08) }
+  button:active{ transform:translateY(0px) }
+
+  #scores{
+    display:none; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;
+    width:min(1000px,95%); margin-inline:auto;
+  }
+  .pill{
+    display:none; width:130px; height:130px; border-radius:50%;
+    background:linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+    border:3px solid var(--green);
+    color:var(--green-dark);
+    font-weight:800; line-height:1.45;
+    box-shadow: inset 0 4px 18px rgba(10,122,51,0.12), 0 6px 20px rgba(0,0,0,0.06);
+    padding:10px;
+  }
+  #team1{ border-color:#0b5cff; background:linear-gradient(145deg, rgba(255,255,255,0.9), rgba(215,230,255,0.7)); }
+  #team2{ border-color:#0fbf3d; background:linear-gradient(145deg, rgba(255,255,255,0.9), rgba(214,245,219,0.7)); }
+  #player{ border-color:#0fbf3d }
+
+  #timerBubble{
+    width:80px;height:80px;border-radius:50%;
+    border:3px solid var(--green);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:22px; color:var(--green-dark);
+    background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,0.7));
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    position:relative;
+  }
+  #timerBubble::after{
+    content:"⏱️";
+    position:absolute; top:-12px; right:-8px; font-size:20px; opacity:.9;
+  }
+
+  #board{
+    display:none;
+    width:min(1000px,95%); margin:16px auto;
+    display:grid; grid-template-columns:repeat(10,1fr); gap:10px;
+  }
+  .cell{
+    padding:14px 10px; font-weight:800; font-size:18px;
+    background:#bfe6c9; color:#0b3b1f;
+    border:2px solid #0f7a39; border-radius:10px;
+    cursor:pointer; transition: all .15s ease;
+  }
+  .cell:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,0.06) }
+  .cell.used{ visibility:hidden }
+
+  #questionPage{ display:none; }
+  #questionCard{
+    margin:12px auto; width:min(900px,92%);
+    text-align: start;
+    border:2px solid var(--green); border-radius:14px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.75));
+    padding:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.06);
+  }
+  #questionText{ font-size:22px; margin-bottom:10px; color:#06361b; }
+
+  .option{
+    display:block; width:100%;
+    text-align: start;
+    margin:10px 0; padding:12px 14px; border-radius:10px;
+    border:2px solid var(--green); color:var(--green-dark);
+    background:rgba(255,255,255,0.8); font-size:18px; font-weight:700; cursor:pointer;
+    transition:background .15s, transform .05s;
+  }
+  .option:hover{ background:rgba(10,122,51,0.08) }
+  .option:active{ transform:scale(0.995) }
+
+  #flash{
+    position:fixed; inset:0; background:red; opacity:0; pointer-events:none; z-index:9999;
+    transition:opacity .25s ease;
+  }
+
+  #endGameBtn{
+    background:#ff9900; color:#fff; border-color:#ff9900;
+  }
+
+  footer{
+    margin:18px auto 26px; width:min(900px,92%);
+    background:rgba(10,122,51,0.06);
+    border:1px solid rgba(10,122,51,0.15);
+    border-radius:10px; padding:10px; font-size:14px; color:#0a4d29;
+  }
+
+  /* شريط أعلى الأسئلة للمؤقت والدور */
+  #topBar{
+    width:min(900px,92%); margin:8px auto 0;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .turnTag{
+    padding:8px 12px; border-radius:999px; font-weight:800; font-size:14px;
+    border:2px solid var(--green); background:rgba(255,255,255,0.8); color:var(--green-dark);
+  }
+</style>
+</head>
+<body>
+
+<h1>🎉 تحديات وطنية 🎉</h1>
+
+<!-- شاشة البدء -->
+<div id="startScreen" class="glass">
+  <h2 style="margin-top:0">اختر وضع اللعبة</h2>
+  <div>
+    <button onclick="showSingleForm()">لعب فردي</button>
+    <button onclick="showTeamForm()">لعب فريقين</button>
+  </div>
+
+  <div id="singleForm" style="display:none; margin-top:10px">
+    <input id="playerName" placeholder="اسم اللاعب" style="padding:10px;border-radius:8px;border:1px solid #9ac9a9;width:min(360px,90%)" />
+    <br/>
+    <button onclick="startPlayer()">ابدأ اللعب</button>
+  </div>
+
+  <div id="teamForm" style="display:none; margin-top:10px">
+    <input id="name1" placeholder="اسم الفريق الأول (أزرق)" style="padding:10px;border-radius:8px;border:1px solid #9ac9a9;width:min(360px,90%);margin:6px" />
+    <input id="name2" placeholder="اسم الفريق الثاني (أخضر)" style="padding:10px;border-radius:8px;border:1px solid #9ac9a9;width:min(360px,90%);margin:6px" />
+    <br/>
+    <button onclick="startTeams()">ابدأ اللعب</button>
+  </div>
+</div>
+
+<!-- شريط النقاط + المؤقت -->
+<div id="scores" class="glass" style="display:none; padding:14px">
+  <div id="team1" class="pill">فريق 1<br><span id="score1">0</span></div>
+  <div id="team2" class="pill">فريق 2<br><span id="score2">0</span></div>
+  <div id="player" class="pill">لاعب<br><span id="scorePlayer">0</span></div>
+  <div id="timerBubble">20</div>
+</div>
+
+<!-- لوحة الأرقام -->
+<div id="board" class="glass"></div>
+<button id="endGameBtn" onclick="endGame()" style="display:none">إنهاء اللعبة</button>
+
+<!-- صفحة السؤال -->
+<div id="questionPage">
+  <div id="topBar">
+    <div class="turnTag" id="turnInfo" style="visibility:hidden">الدور: —</div>
+    <div style="flex:1"></div>
+    <div class="turnTag">المتبقي: <span id="timerTop">20</span>ث</div>
+  </div>
+
+  <div id="questionCard" class="glass" style="margin-top:10px">
+    <div id="questionText"></div>
+    <div id="options"></div>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<footer>أ-ريهام الزهراني - الثانوية ٩٢</footer>
+
+<script>
+/* ================== الحالة العامة ================== */
+let mode="single";         // "single" أو "teams"
+let currentTeam=1;         // 1 أو 2 عند الفرق
+let scores=[0,0];          // [فريق1/لاعب, فريق2]
+let currentQ=null;
+let timeLeft=20;
+let timerInterval=null;
+
+/* ================== أسئلة (40) — 20 متوسط + 20 صعب ================== */
+const questions={
+  // (1-20) متوسطة
+  1:{q:"في أي عام تم توحيد المملكة العربية السعودية؟",a:["1932","1945","1927","1950"],correct:0},
+  2:{q:"من هو مؤسس المملكة العربية السعودية؟",a:["الملك عبدالعزيز","الملك فيصل","الملك سعود","الملك فهد"],correct:0},
+  3:{q:"ما عاصمة المملكة؟",a:["الرياض","جدة","مكة","الدمام"],correct:0},
+  4:{q:"ألوان العلم السعودي؟",a:["أخضر وأبيض","أحمر وأبيض","أزرق وأصفر","أخضر وأسود"],correct:0},
+  5:{q:"ما العبارة المكتوبة على العلم السعودي؟",a:["لا إله إلا الله محمد رسول الله","الله أكبر","بسم الله الرحمن الرحيم","سبحان الله"],correct:0},
+  6:{q:"كم عدد المناطق الإدارية في المملكة؟",a:["13","11","12","14"],correct:0},
+  7:{q:"شعار المملكة الرسمي؟",a:["سيفان ونخلة","نخلة فقط","سيف واحد","علم فقط"],correct:0},
+  8:{q:"أين يقع المسجد الحرام؟",a:["مكة المكرمة","المدينة المنورة","الرياض","جدة"],correct:0},
+  9:{q:"أين يقع المسجد النبوي؟",a:["المدينة المنورة","مكة المكرمة","الرياض","الطائف"],correct:0},
+ 10:{q:"ما العملة الرسمية للمملكة؟",a:["الريال","الدينار","الدرهم","الجنيه"],correct:0},
+ 11:{q:"ما البحر الذي يحد المملكة من الغرب؟",a:["البحر الأحمر","الخليج العربي","بحر العرب","المحيط الهندي"],correct:0},
+ 12:{q:"ما الخليج الذي يحد المملكة من الشرق؟",a:["الخليج العربي","خليج عدن","خليج عمان","خليج البصرة"],correct:0},
+ 13:{q:"متى أُسست أرامكو السعودية (كسابك؟ لا، أرامكو)",a:["1933","1945","1950","1965"],correct:0},
+ 14:{q:"في أي مدينة يقع قصر المصمك؟",a:["الرياض","مكة","المدينة","الطائف"],correct:0},
+ 15:{q:"أين يقع ميناء الملك عبدالعزيز الرئيسي؟",a:["الدمام","جدة","ينبع","جازان"],correct:0},
+ 16:{q:"أين يقع برج المملكة الشهير؟",a:["الرياض","جدة","الدمام","الطائف"],correct:0},
+ 17:{q:"ما اللقب الشهير لمدينة جدة؟",a:["عروس البحر الأحمر","مدينة الورد","مدينة الجبال","مدينة النور"],correct:0},
+ 18:{q:"متى اكتُشف النفط في المملكة لأول مرة؟",a:["1938","1945","1927","1950"],correct:0},
+ 19:{q:"ما المدينة التي تُعرف بمدينة الورد؟",a:["الطائف","ينبع","الرياض","نجران"],correct:0},
+ 20:{q:"أين تقع الدرعية التاريخية؟",a:["منطقة الرياض","منطقة مكة","منطقة المدينة","منطقة تبوك"],correct:0},
+
+  // (21-40) صعبة
+ 21:{q:"أعلى جبل في المملكة؟",a:["جبل السودة","جبل اللوز","جبل أحد","جبل النور"],correct:0},
+ 22:{q:"أكبر صحراء داخل المملكة؟",a:["الربع الخالي","النفود الكبير","الدهناء","حرات المدينة"],correct:0},
+ 23:{q:"أين تقع مدائن صالح (الحِجر)؟",a:["العلا","جازان","الرياض","القصيم"],correct:0},
+ 24:{q:"أين يقع جبل اللوز؟",a:["منطقة تبوك","منطقة عسير","منطقة مكة","منطقة نجران"],correct:0},
+ 25:{q:"في أي عام انضمت المملكة للأمم المتحدة؟",a:["1945","1950","1960","1975"],correct:0},
+ 26:{q:"أين يقع وادي حنيفة؟",a:["الرياض","مكة","المدينة","الدمام"],correct:0},
+ 27:{q:"أين يقع جبل أُحد؟",a:["المدينة المنورة","مكة المكرمة","تبوك","عسير"],correct:0},
+ 28:{q:"ما أكبر واحة نخيل في العالم داخل المملكة؟",a:["الأحساء","القصيم","نجران","البكيرية"],correct:0},
+ 29:{q:"متى بدأ تصدير النفط من المملكة؟",a:["1939","1945","1950","1960"],correct:0},
+ 30:{q:"أين يقع الميناء الإسلامي الرئيسي على البحر الأحمر؟",a:["ميناء جدة الإسلامي","ميناء ينبع","ميناء ضباء","ميناء جازان"],correct:0},
+ 31:{q:"أين يقع الميناء الرئيسي على الخليج العربي؟",a:["ميناء الدمام","ميناء الجبيل","ميناء الخبر","ميناء رأس تنورة"],correct:0},
+ 32:{q:"كم دولة تحد السعودية برًا؟",a:["7","6","8","5"],correct:0}, /* الأردن، العراق، الكويت، قطر، الإمارات، عمان، اليمن */
+ 33:{q:"في أي منطقة تقع نيوم؟",a:["تبوك","المدينة","الرياض","حائل"],correct:0},
+ 34:{q:"أين يقع وادي الدواسر؟",a:["منطقة الرياض","منطقة مكة","منطقة المدينة","الشرقية"],correct:0},
+ 35:{q:"أين تقع محافظة حقل؟",a:["تبوك","جازان","عسير","الباحة"],correct:0},
+ 36:{q:"متى تأسس مجلس الشورى بصيغته الحديثة؟",a:["1992","1985","2000","1975"],correct:0},
+ 37:{q:"ما السلسلة الجبلية الممتدة على طول غرب المملكة؟",a:["جبال السروات","جبال تهامة","جبال نجد","جبال شمر"],correct:0},
+ 38:{q:"مدينة العلا تتبع أي منطقة إدارية؟",a:["المدينة المنورة","تبوك","مكة","الشرقية"],correct:0},
+ 39:{q:"من أول ملك سعودي اتخذ لقب خادم الحرمين الشريفين؟",a:["الملك فهد","الملك فيصل","الملك سلمان","الملك سعود"],correct:0},
+ 40:{q:"في أي عام أُعلن عن رؤية السعودية 2030؟",a:["2016","2015","2018","2020"],correct:0},
+};
+
+/* ================== واجهة البداية ================== */
+function showSingleForm(){ document.getElementById("singleForm").style.display="block"; }
+function showTeamForm(){ document.getElementById("teamForm").style.display="block"; }
+
+function startPlayer(){
+  mode="single";
+  const name=(document.getElementById("playerName").value||"لاعب").trim();
+  document.getElementById("player").style.display="inline-block";
+  document.getElementById("player").innerHTML = `${name}<br><span id="scorePlayer">0</span>`;
+  scores=[0,0];
+  beginGame();
+}
+function startTeams(){
+  mode="teams";
+  const n1=(document.getElementById("name1").value||"فريق 1").trim();
+  const n2=(document.getElementById("name2").value||"فريق 2").trim();
+  document.getElementById("team1").style.display="inline-block";
+  document.getElementById("team2").style.display="inline-block";
+  document.getElementById("team1").innerHTML = `${n1}<br><span id="score1">0</span>`;
+  document.getElementById("team2").innerHTML = `${n2}<br><span id="score2">0</span>`;
+  scores=[0,0]; currentTeam=1;
+  beginGame();
+}
+
+function beginGame(){
+  document.getElementById("startScreen").style.display="none";
+  document.getElementById("scores").style.display="flex";
+  document.getElementById("endGameBtn").style.display="inline-block";
+  buildBoard();
+}
+
+/* ================== لوحة الأرقام ================== */
+function buildBoard(){
+  const board=document.getElementById("board");
+  board.style.display="grid";
+  board.innerHTML="";
+  for(let i=1;i<=40;i++){
+    const btn=document.createElement("button");
+    btn.className="cell";
+    btn.textContent=i;
+    btn.dataset.num=i;
+    btn.onclick=()=>openQuestion(i);
+    board.appendChild(btn);
+  }
+}
+
+/* ================== فتح السؤال ================== */
+function openQuestion(num){
+  currentQ=num;
+  // حدّث شارة الدور
+  const turnInfo=document.getElementById("turnInfo");
+  if(mode==="teams"){
+    turnInfo.style.visibility="visible";
+    const t1=document.getElementById("team1").textContent.split("\n")[0]||"الفريق 1";
+    const t2=document.getElementById("team2").textContent.split("\n")[0]||"الفريق 2";
+    turnInfo.textContent = `الدور: ${currentTeam===1?t1:t2}`;
+  } else {
+    turnInfo.style.visibility="hidden";
+  }
+
+  document.getElementById("board").style.display="none";
+  document.getElementById("questionPage").style.display="block";
+
+  const q=questions[num];
+  document.getElementById("questionText").textContent=`س${num}: ${q.q}`;
+  const opts=document.getElementById("options"); opts.innerHTML="";
+  q.a.forEach((txt,idx)=>{
+    const b=document.createElement("button");
+    b.className="option";
+    b.textContent=txt;
+    b.onclick=()=>checkAnswer(idx);
+    opts.appendChild(b);
+  });
+
+  // مؤقت
+  startTimer(20);
+}
+
+/* ================== المؤقت ================== */
+function startTimer(seconds){
+  clearInterval(timerInterval);
+  timeLeft=seconds;
+  updateTimers();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimers();
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      flash(false); // انتهاء الوقت = خطأ
+      // في الفرق: ينتقل الدور للفريق الآخر، والسؤال يبقى متاحًا
+      if(mode==="teams"){ currentTeam = (currentTeam===1?2:1); }
+      backToBoard(false); // لم يُحل
+    }
+  },1000);
+}
+function updateTimers(){
+  document.getElementById("timerBubble").textContent=timeLeft;
+  document.getElementById("timerTop").textContent=timeLeft;
+}
+
+/* ================== التحقق من الإجابة ================== */
+function checkAnswer(choice){
+  clearInterval(timerInterval);
+  const q=questions[currentQ];
+  const correct = (choice===q.correct);
+  flash(correct);
+
+  if(correct){
+    addScore(currentQ);
+    backToBoard(true);   // حُلّت → أخفِ الرقم
+  }else{
+    // في الفرق: بدّل الدور، والسؤال يبقى متاحًا
+    if(mode==="teams"){ currentTeam = (currentTeam===1?2:1); }
+    backToBoard(false);  // لم تُحل → إبقاء الرقم
+  }
+}
+
+/* ================== النقاط ================== */
+function addScore(points){
+  if(mode==="single"){
+    scores[0]+=points;
+    const sp=document.getElementById("scorePlayer");
+    if(sp) sp.textContent=scores[0];
+  }else{
+    scores[currentTeam-1]+=points;
+    document.getElementById("score1").textContent=scores[0];
+    document.getElementById("score2").textContent=scores[1];
+    // بعد الإجابة (صواب أو خطأ) يتغير الدور دائماً
+    currentTeam = (currentTeam===1?2:1);
+  }
+}
+
+/* ================== العودة للوحة ================== */
+function backToBoard(solved){
+  // أخفِ صفحة السؤال
+  document.getElementById("questionPage").style.display="none";
+  // أظهر اللوحة
+  const board=document.getElementById("board");
+  board.style.display="grid";
+
+  // عالج رقم السؤال حسب النتيجة
+  const btn=[...board.querySelectorAll(".cell")].find(b=>+b.dataset.num===currentQ);
+  if(btn){
+    if(solved){
+      btn.classList.add("used");
+      btn.disabled=true;
+    }else{
+      // لم يُحل: يبقى متاحًا
+      btn.classList.remove("used");
+      btn.disabled=false;
+    }
+  }
+}
+
+/* ================== تأثير الوميض ================== */
+function flash(isCorrect){
+  const f=document.getElementById("flash");
+  f.style.backgroundColor=isCorrect?"rgba(0,200,0,0.45)":"rgba(255,0,0,0.45)";
+  f.style.opacity="1";
+  setTimeout(()=>{ f.style.opacity="0"; }, 280);
+}
+
+/* ================== إنهاء اللعبة ================== */
+function endGame(){
+  clearInterval(timerInterval);
+  // عطّل بقية الأرقام
+  document.querySelectorAll("#board .cell").forEach(c=>c.disabled=true);
+  // احذف نتيجة قديمة
+  const old=document.getElementById("gameResult"); if(old) old.remove();
+
+  let msg="";
+  if(mode==="single"){
+    msg=`انتهت اللعبة! مجموع نقاطك: ${scores[0]}`;
+  }else{
+    const t1=document.getElementById("team1").textContent.split("\n")[0]||"الفريق 1";
+    const t2=document.getElementById("team2").textContent.split("\n")[0]||"الفريق 2";
+    if(scores[0]>scores[1]) msg=`انتهت اللعبة! الفريق الفائز: ${t1} — (${scores[0]} نقطة)`;
+    else if(scores[1]>scores[0]) msg=`انتهت اللعبة! الفريق الفائز: ${t2} — (${scores[1]} نقطة)`;
+    else msg=`انتهت اللعبة! النتيجة متعادلة: ${scores[0]} - ${scores[1]}`;
+  }
+
+  const card=document.createElement("div");
+  card.id="gameResult";
+  card.className="glass";
+  card.style.marginTop="10px";
+  card.style.fontWeight="800";
+  card.style.fontSize="22px";
+  card.textContent=msg;
+  document.body.appendChild(card);
+}
+
+/* ================== ملاحظات:
+   لتبسيط النشر وعدم تضخيم الملف، الأصوات لم تُدمج Base64.
+   إن رغبت بإضافة أصوات، يمكن استعمال WebAudio API أو إضافة data: URLs.
+   ================== */
+</script>
+</body>
+</html>
+
